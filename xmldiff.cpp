@@ -4,7 +4,13 @@
 int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg)
 {
     QDomElement registerDescElement1 = doc1.documentElement().firstChildElement();
+    if(registerDescElement1.isNull()){
+        return XMLDIFF_UNVALID_REG_DESC;
+    }
     QDomElement registerDescElement2 = doc2.documentElement().firstChildElement();
+    if(registerDescElement2.isNull()){
+        return XMLDIFF_UNVALID_REG_DESC;
+    }
 
     return compare(registerDescElement1, registerDescElement2, errorMsg);
 }

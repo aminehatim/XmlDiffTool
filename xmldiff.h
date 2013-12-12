@@ -25,7 +25,8 @@ public:
         XMLDIFF_OK = 0,
         XMLDIFF_MISSING_CHILDS = 1,
         XMLDIFF_MISSING_ATTRIBUTES = 2,
-        XMLDIFF_DIFFERENT_VALUES = 3
+        XMLDIFF_DIFFERENT_VALUES = 3,
+        XMLDIFF_UNVALID_REG_DESC =4
     };
 
 private:

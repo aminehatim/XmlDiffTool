@@ -123,6 +123,9 @@ int main(int argc, char *argv[])
     case 3:
         outStream << "Values difference" << endl;
         break;
+    case 4:
+        outStream << "Invalid xml file" << endl;
+        break;
     default:
         break;
     }
