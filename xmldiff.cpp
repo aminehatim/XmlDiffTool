@@ -1,107 +1,128 @@
 #include "xmldiff.h"
-#include <QFile>
 
-XmlDiff::XmlDiff(QDomDocument domDoc1, QDomDocument domDoc2, QTextStream *outStream)
+
+int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg)
 {
+    QDomElement registerDescElement1 = doc1.documentElement().firstChildElement();
+    QDomElement registerDescElement2 = doc2.documentElement().firstChildElement();
 
-    this->domDoc1 = domDoc1;
-    this->domDoc2 = domDoc2;
-
-    this->outStream = outStream;
-
+    return compare(registerDescElement1, registerDescElement2, errorMsg);
 }
 
-bool XmlDiff::compare(){
-    // Start comparing
-    QDomElement regDescElement1 = domDoc1.documentElement();
-    QDomElement regDescElement2 = domDoc2.documentElement();
-    QDomElement child1 = regDescElement1.firstChildElement();
-    QDomElement child2 = regDescElement2.firstChildElement();
+int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
+{
+    int retValue;
+    // Comapre childs
+    retValue = compareChilds(node1, node2, errorMsg);
+    if(retValue != XMLDIFF_OK){
+        return retValue;
+    }
 
-    bool isDifferent = false;
-    while (!child1.isNull() || !child2.isNull()){
-        //debug
-        QString str1 = child1.attribute("Label");
-        QString str2 = child2.attribute("Label");
+    // Compare attributes
+    retValue = compareAttributes(node1, node2, errorMsg);
+    if(retValue != XMLDIFF_OK){
+        return retValue;
+    }
 
-        bool retValue = compareNodes(child1, child2);
-        if(!retValue){
-            // error
-            isDifferent = true;
-            break;
-        }
+    // Compare values
+    retValue = compareValues(node1, node2, errorMsg);
+    if(retValue != XMLDIFF_OK){
+        return retValue;
+    }
 
+    QDomElement child1 = node1.firstChildElement();
+    QDomElement child2 = node2.firstChildElement();
 
-        QDomElement child1Copy = child1;
-        QDomElement child2Copy = child2;
+    while(!child1.isNull() || child2.isNull()){
+        // Compare childs
+        compare(child1, child2, errorMsg);
+
         child1 = child1.nextSiblingElement();
         child2 = child2.nextSiblingElement();
+    }
 
+}
 
-        if((child1.isNull() && !child2.isNull()) || (!child1.isNull() && child2.isNull()) ){
-            // If the xml trees are not the same
-            if(child1.isNull()){
-                // Missing Node from the first file
-                QString pathOfMissingNode = elementToPath(child2);
-                *outStream << "Missing Node from file 1("+pathOfMissingNode+")" << endl;
-                printTreeDifference(child1Copy, child2);
+int XmlDiff::compareChilds(QDomElement node1, QDomElement node2, QString *errorMsg){
 
-            }
-            else if(child2.isNull()){
-                // Missing Node fron the second file
-                QString pathOfMissingNode = elementToPath(child1);
-                *outStream << "Missing Node from file 2("+pathOfMissingNode+")" << endl;
-                printTreeDifference(child1, child2Copy);
+    QDomNodeList node1ChildNodes = node1.childNodes();
+    QDomNodeList node2ChildNodes = node2.childNodes();
 
-            }
+    int node1ChildCount = node1ChildNodes.count();
+    int node2ChildCount = node2ChildNodes.count();
+
+    if(node1ChildCount != node2ChildCount){
+        return XMLDIFF_MISSING_CHILDS;
+    }
+
+    for (int i=0; i<node1ChildNodes.count(); i++){
+
+        QString child1Label = node1ChildNodes.at(i).toElement().attribute("Label");
+        QString child2Label = node2ChildNodes.at(i).toElement().attribute("Label");
+
+        if(child1Label != child2Label){
+            return XMLDIFF_MISSING_CHILDS;
         }
     }
 
-    if(!isDifferent){
-        return false;
+    return XMLDIFF_OK;
+}
+
+int XmlDiff::compareAttributes(QDomElement node1, QDomElement node2, QString *errorMsg)
+{
+
+    QStringList node1AttributesList = getAttrbitesValuesPair(node1).first;
+    QStringList node2AttributesList = getAttrbitesValuesPair(node2).first;
+
+    if(node1AttributesList == node2AttributesList){
+            return XMLDIFF_MISSING_ATTRIBUTES;
     }
 
-    return true;
+    return XMLDIFF_OK;
 
 }
 
-void XmlDiff::printElementAttributes(QDomElement elementToPrint)
+int XmlDiff::compareValues(QDomElement node1, QDomElement node2, QString *errorMsg)
 {
+    QStringList node1ValuesList = getAttrbitesValuesPair(node1).second;
+    QStringList node2ValuesList = getAttrbitesValuesPair(node2).second;
 
-    QPair<QStringList, QStringList> attributeValueListPair = getSortedAttibutesAndValuesList(elementToPrint);
-    QStringList attributeList = attributeValueListPair.first;
-    QStringList valueList = attributeValueListPair.second;
-
-    // This should use path no labels
-    int labelIdx = attributeList.indexOf("Label");
-    QString label = valueList.at(labelIdx);
-
-    *outStream << label << endl;
-    for(int i= 0; i < attributeList.size(); i++){
-        *outStream << "----> " + attributeList.at(i) + " = " + valueList.at(i) << endl;
+    if(node1ValuesList != node2ValuesList){
+        return XMLDIFF_DIFFERENT_VALUES;
     }
 
-
+    return XMLDIFF_OK;
 }
 
-void XmlDiff::PrintElementChildren(QDomElement element,int *tabCount)
-{
-    QDomElement childElement = element.firstChildElement();
 
-    QString tabStr = getTabString(*tabCount);
-    QString elementLabel = element.attribute("Label");
-    *outStream << tabStr + elementLabel << endl;
-    *tabCount += 2;
-    while(!childElement.isNull()){
-        PrintElementChildren(childElement, tabCount);
-        *tabCount -= 2;
-        childElement = childElement.nextSiblingElement();
+QString XmlDiff::elementToPath(QDomElement element){
+    QStringList pathList;
+    QDomElement parentElement = element;
+
+    while( (!parentElement.isNull() ) &&
+           (!parentElement.attribute("Label").isEmpty() ) &&
+           (parentElement.tagName() != "register_description" )
+           ) {
+        pathList.push_front(parentElement.attribute("Label"));
+        QDomNode parentNode = parentElement.parentNode();
+        parentElement = parentNode.toElement();
+    }
+    QString tmp;
+    tmp=parentElement.tagName();
+    if (parentElement.tagName() !=  "register_description") {
+        return QString();
     }
 
+    QString path = pathList.join("/");
+    if (pathList.empty()) {
+        path.prepend("root");
+    }
+    return path;
 }
 
-QPair<QStringList, QStringList> XmlDiff::getSortedAttibutesAndValuesList(QDomElement element)
+QPair<QStringList, QStringList> XmlDiff::getAttrbitesValuesPair(QDomElement element)
 {
+
     QStringList attributeList, valueList;
     QDomNamedNodeMap attributesMap = element.attributes();
     QDomNode attribute;
@@ -127,102 +148,5 @@ QPair<QStringList, QStringList> XmlDiff::getSortedAttibutesAndValuesList(QDomEle
     }
 
     return qMakePair(attributeList, valueList);
-}
 
-void XmlDiff::printTreeDifference(QDomElement element1, QDomElement element2)
-{
-    QDomElement parent1 = element1.parentNode().toElement();
-    QDomElement parent2 = element2.parentNode().toElement();
-    *outStream << "------------------ File1 --------------------" << endl;
-    int tabCount = 0;
-    PrintElementChildren(parent1, &tabCount);
-    *outStream << "------------------ File2 --------------------" << endl;
-    tabCount = 0;
-    PrintElementChildren(parent2, &tabCount);
-
-}
-
-void XmlDiff::printAttributesDifference(QDomElement element1, QDomElement element2)
-{
-    *outStream << "------------------ File1 --------------------" << endl;
-    printElementAttributes(element1);
-    *outStream << "------------------ File2 --------------------" << endl;
-    printElementAttributes(element2);
-}
-
-bool XmlDiff::compareNodes(QDomElement element1, QDomElement element2)
-{
-
-    // get sorted attributes
-
-    QPair element1attributesValuesPair = getSortedAttibutesAndValuesList(element1);
-    QPair element2attributesValuesPair = getSortedAttibutesAndValuesList(element2);
-
-    QStringList element1attributesList = element1attributesValuesPair.first;
-    QStringList element2attributesList = element2attributesValuesPair.first;
-
-    QStringList element1ValuesList = element1attributesValuesPair.second;
-    QStringList element2ValuesList = element2attributesValuesPair.second;
-
-    // verify missing attributes
-    bool retValue = compareNodeAttributes(element1attributesList, element2attributesList);
-    if(!retValue){
-        return false;
-    }
-
-    // verify diffrence in values
-    for(int i=0; i<maxCount; i++){
-
-    }
-}
-
-bool XmlDiff::compareNodeAttributes(QDomElement element1, QStringList node1AttributesList, QDomElement element2, QStringList node2AttributesList)
-{
-
-    if(node1AttributesList == node2AttributesList){
-        return true;
-    }
-
-    // Missing attributes
-    printAttributesDifference(element1, element2);
-    return false;
-
-}
-
-QString XmlDiff::getTabString(int tabCount)
-{
-    // Add tabulation for better view
-    QString tabStr;
-    for(int i=0; i<=tabCount; i++){
-        tabStr = tabStr.append("-");
-    }
-    tabStr = tabStr.append(">");
-
-    return tabStr;
-
-}
-
-QString XmlDiff::elementToPath(QDomElement element) {
-    QStringList pathList;
-    QDomElement parentElement = element;
-
-    while( (!parentElement.isNull() ) &&
-           (!parentElement.attribute("Label").isEmpty() ) &&
-           (parentElement.tagName() != "register_description" )
-           ) {
-        pathList.push_front(parentElement.attribute("Label"));
-        QDomNode parentNode = parentElement.parentNode();
-        parentElement = parentNode.toElement();
-    }
-    QString tmp;
-    tmp=parentElement.tagName();
-    if (parentElement.tagName() !=  "register_description") {
-        return QString();
-    }
-
-    QString path = pathList.join("/");
-    if (pathList.empty()) {
-        path.prepend("root");
-    }
-    return path;
 }

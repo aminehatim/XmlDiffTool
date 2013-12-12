@@ -10,25 +10,29 @@
 class XmlDiff
 {
 public:
-    XmlDiff(QDomDocument domDoc1, QDomDocument domDoc2, QTextStream *outStream);
-    bool compare();
-    void printElementAttributes(QDomElement elementToPrint);
-    void PrintElementChildren(QDomElement element, int *tabCount);
-    QPair<QStringList, QStringList> getSortedAttibutesAndValuesList(QDomElement element);
-    void printTreeDifference(QDomElement element1, QDomElement element2);
-    void printAttributesDifference(QDomElement element1, QDomElement element2);
-    bool compareNodes(QDomElement element1, QDomElement element2);
-    bool compareNodeAttributes(QDomElement element1, QStringList node1AttributesList, QDomElement element2, QStringList node2AttributesList);
-    QString elementToPath(QDomElement element);
 
+    static int compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg);
+
+    static int compare(QDomElement node1, QDomElement node2, QString *errorMsg);
+
+    static int compareChilds(QDomElement node1, QDomElement node2, QString *errorMsg);
+
+    static int compareAttributes(QDomElement node1, QDomElement node2, QString *errorMsg);
+
+    static int compareValues(QDomElement node1, QDomElement node2, QString *errorMsg);
+
+    enum returnCode {
+        XMLDIFF_OK = 0,
+        XMLDIFF_MISSING_CHILDS = 1,
+        XMLDIFF_MISSING_ATTRIBUTES = 2,
+        XMLDIFF_DIFFERENT_VALUES = 3
+    };
 
 private:
 
-    // For the view
-    QString getTabString(int tabCount);
-    QDomDocument domDoc1;
-    QDomDocument domDoc2;
-    QTextStream *outStream;
+    static QString elementToPath(QDomElement element);
+    static QPair<QStringList, QStringList> getAttrbitesValuesPair(QDomElement element);
+
 
 };
 

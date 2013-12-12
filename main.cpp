@@ -108,17 +108,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-
-    XmlDiff diffTool(domDoc1, domDoc2, &outStream);
-
-    // Start comparing
-    bool retVal = diffTool.compare();
-
-    if(!retVal ){
-        return 1;
-    }
+    int retValue = XmlDiff::compare(domDoc1, domDoc2, &errorMessage);
 
 
-
-    return 0;
+    return retValue;
 }
