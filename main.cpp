@@ -109,7 +109,23 @@ int main(int argc, char *argv[])
     }
 
     int retValue = XmlDiff::compare(domDoc1, domDoc2, &errorMessage);
+    switch (retValue) {
+    case 0:
+        outStream << "The Files are the same" << endl;
+        break;
+    case 1:
+        outStream << "Missing Nodes" << endl;
+        break;
+    case 2:
+        outStream << "Missing Attributes" << endl;
 
+        break;
+    case 3:
+        outStream << "Values difference" << endl;
+        break;
+    default:
+        break;
+    }
 
     return retValue;
 }

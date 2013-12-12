@@ -33,7 +33,7 @@ int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
     QDomElement child1 = node1.firstChildElement();
     QDomElement child2 = node2.firstChildElement();
 
-    while(!child1.isNull() || child2.isNull()){
+    while(!child1.isNull() || !child2.isNull()){
         // Compare childs
         compare(child1, child2, errorMsg);
 
@@ -74,7 +74,7 @@ int XmlDiff::compareAttributes(QDomElement node1, QDomElement node2, QString *er
     QStringList node1AttributesList = getAttrbitesValuesPair(node1).first;
     QStringList node2AttributesList = getAttrbitesValuesPair(node2).first;
 
-    if(node1AttributesList == node2AttributesList){
+    if(node1AttributesList != node2AttributesList){
             return XMLDIFF_MISSING_ATTRIBUTES;
     }
 
