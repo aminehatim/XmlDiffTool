@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<register_description GenTimeStamp="07.12.2013" schema_ver="3" version="1" Label="defaultLabel" LegCalcValue="false" tool-version="4.16.414" ComponentName="newregister">
+  <section AddressType="REL" HdlGen="true" ram="false" AddressWidth="" AlignmentExt="Boundary" AddressBase="0" Comments="None" TotalRegQty="0" RepeatQty="1" HdlDec="true" Label="newsection" Alignment="Boundary">
+    <register AddressType="REL" Comments="None" AddressVal="0" TotalBitLenght="16" DefaulVal="0" Label="newregister_1">
+      <bit_field HdlGen="true" Mask="1" Comments="None" BitLenght="1" AccessType="RW" MSBPos="1" Id="false" HdlDec="true" DefaulVal="0" LSBPos="0" HdlGrp="" Label="newfield"/>
+    </register>
+    <register AddressType="REL" Comments="None" AddressVal="0" TotalBitLenght="16" DefaulVal="0" Label="newregister_2">
+      <bit_field HdlGen="true" Mask="1" Comments="None" BitLenght="1" AccessType="RW" MSBPos="1" Id="false" HdlDec="true" DefaulVal="0" LSBPos="0" HdlGrp="" Label="newfield"/>
+    </register>
+  </section>
+</register_description>
