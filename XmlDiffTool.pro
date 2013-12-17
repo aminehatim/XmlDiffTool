@@ -16,7 +16,9 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    xmldiff.cpp
+    xmldiff.cpp \
+    consoleprinter.cpp
 
 HEADERS += \
-    xmldiff.h
+    xmldiff.h \
+    consoleprinter.h

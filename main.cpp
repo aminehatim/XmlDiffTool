@@ -8,6 +8,7 @@
 #include <QDebug>
 
 #include "xmldiff.h"
+#include "consoleprinter.h"
 
 
 void printUsage (QTextStream *outStream){
@@ -107,21 +108,23 @@ int main(int argc, char *argv[])
         outStream << errorMessage << endl;
         return 1;
     }
-
-    int retValue = XmlDiff::compare(domDoc1, domDoc2, &errorMessage);
+    QDomElement errorNode1, errorNode2;
+    int retValue = XmlDiff::compare(domDoc1, domDoc2, &errorNode1, &errorNode2, &errorMessage);
     switch (retValue) {
     case 0:
         outStream << "The Files are the same" << endl;
         break;
     case 1:
         outStream << "Missing Nodes" << endl;
+        ConsolePrinter::printTreeDifference(errorNode1, errorNode2, &outStream);
         break;
     case 2:
         outStream << "Missing Attributes" << endl;
-
+        ConsolePrinter::printAttributesDifference(errorNode1, errorNode2, &outStream);
         break;
     case 3:
         outStream << "Values difference" << endl;
+        ConsolePrinter::printAttributesDifference(errorNode1, errorNode2, &outStream);
         break;
     case 4:
         outStream << "Invalid xml file" << endl;

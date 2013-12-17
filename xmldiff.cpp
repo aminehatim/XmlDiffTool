@@ -1,7 +1,7 @@
 #include "xmldiff.h"
 
 
-int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg)
+int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QDomElement *errorNode1, QDomElement *errorNode2, QString *errorMsg)
 {
     QDomElement registerDescElement1 = doc1.documentElement().firstChildElement();
     if(registerDescElement1.isNull()){
@@ -12,13 +12,18 @@ int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg)
         return XMLDIFF_UNVALID_REG_DESC;
     }
 
-    return compare(registerDescElement1, registerDescElement2, errorMsg);
+    return compare(registerDescElement1, registerDescElement2, errorNode1, errorNode2, errorMsg);
 }
 
-int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
+int XmlDiff::compare(QDomElement node1, QDomElement node2, QDomElement *errorNode1, QDomElement *errorNode2, QString *errorMsg)
 {
 
     int retValue;
+
+    // Save the current nodes
+    *errorNode1 = node1;
+    *errorNode2 = node2;
+
     // Comapre childs
     retValue = compareChilds(node1, node2, errorMsg);
     if(retValue != XMLDIFF_OK){
@@ -42,7 +47,7 @@ int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
 
     while(!child1.isNull() || !child2.isNull()){
         // Compare childs
-        int retVal = compare(child1, child2, errorMsg);
+        int retVal = compare(child1, child2, errorNode1, errorNode2, errorMsg);
         if(retVal != XMLDIFF_OK){
             return retVal;
         }

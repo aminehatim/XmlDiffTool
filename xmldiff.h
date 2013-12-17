@@ -11,9 +11,9 @@ class XmlDiff
 {
 public:
 
-    static int compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg);
+    static int compare(QDomDocument doc1, QDomDocument doc2, QDomElement *errorNode1, QDomElement *errorNode2, QString *errorMsg);
 
-    static int compare(QDomElement node1, QDomElement node2, QString *errorMsg);
+    static int compare(QDomElement node1, QDomElement node2, QDomElement *errorNode1, QDomElement *errorNode2, QString *errorMsg);
 
     static int compareChilds(QDomElement node1, QDomElement node2, QString *errorMsg);
 
