@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <Installer>
+     <Name>Xml Diff Tool</Name>
+     <Version>1.0</Version>
+     <Title>XmlDiffTool Installer</Title>
+     <Publisher>Amine</Publisher>
+     <StartMenuDir>test1</StartMenuDir>
+     <TargetDir>@rootDir@InstallationDirectory</TargetDir>
+ </Installer>
