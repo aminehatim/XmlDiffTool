@@ -31,7 +31,7 @@ QStringList parseArguments (int argNumber, char *argv[], bool *ok, QString *erro
     QString file1Path = argv[1];
     QString file2Path = argv[2];
 
-    qDebug () << QDir::currentPath();
+
     // Verify existance
     QFile file1(file1Path);
     if(!file1.exists()){

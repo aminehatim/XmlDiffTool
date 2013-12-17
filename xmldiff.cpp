@@ -17,6 +17,7 @@ int XmlDiff::compare(QDomDocument doc1, QDomDocument doc2, QString *errorMsg)
 
 int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
 {
+
     int retValue;
     // Comapre childs
     retValue = compareChilds(node1, node2, errorMsg);
@@ -41,7 +42,10 @@ int XmlDiff::compare(QDomElement node1, QDomElement node2, QString *errorMsg)
 
     while(!child1.isNull() || !child2.isNull()){
         // Compare childs
-        compare(child1, child2, errorMsg);
+        int retVal = compare(child1, child2, errorMsg);
+        if(retVal != XMLDIFF_OK){
+            return retVal;
+        }
 
         child1 = child1.nextSiblingElement();
         child2 = child2.nextSiblingElement();
@@ -69,6 +73,7 @@ int XmlDiff::compareChilds(QDomElement node1, QDomElement node2, QString *errorM
         if(child1Label != child2Label){
             return XMLDIFF_MISSING_CHILDS;
         }
+
     }
 
     return XMLDIFF_OK;
